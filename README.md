@@ -4,10 +4,10 @@ VBA macro to generate a calendar in Excel from a list of events.
 Usage
 -----
 
-Import GenerateCalendar.bas into a new Excel VBA module.
-Create 2 worksheets: Events and Calendar
-Add your events list to the Events worksheet, using 1 header row. At minimum, you should have the following columns: Event Name, Event Date, Event Start Time, Event End Time, and Event Duration. [Here](https://docs.google.com/spreadsheets/d/13nmTGkXFL6PW17H03rXzOU6fHmeSnu-SOFysATPxFBQ/edit?usp=sharing) is a sample workbook to compare to.
-Edit the `Const`s in the code as necessary to match the appropriate columns.
+Import GenerateCalendar.bas into a new Excel VBA module.  
+Create 2 worksheets: Events and Calendar.  
+Add your events list to the Events worksheet, using 1 header row. At minimum, you should have the following columns: Event Name, Event Date, Event Start Time, Event End Time, and Event Duration.   [Here](https://docs.google.com/spreadsheets/d/13nmTGkXFL6PW17H03rXzOU6fHmeSnu-SOFysATPxFBQ/edit?usp=sharing) is a sample workbook to compare to.  
+Edit the `Const`s in the code as necessary to match the appropriate columns.  
 Run the Generate Calendar macro.
 
 License
