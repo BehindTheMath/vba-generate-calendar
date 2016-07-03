@@ -1,6 +1,8 @@
 # VBA-Generate-Calendar
 VBA macro to generate a calendar in Excel from a list of events.
 
+![Calendar sheet - Page Layout view](screenshots/vba-generate-calendar Calendar sheet - Page Layout.jpg)
+
 Usage
 -----
 
