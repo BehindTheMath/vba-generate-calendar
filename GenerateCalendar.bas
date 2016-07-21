@@ -180,6 +180,7 @@ Sub SortEvents()
     EventsSheet.Sort.SortFields.Clear
     EventsSheet.Sort.SortFields.Add Key:=Columns(EventDateColumn), SortOn:=xlSortOnValues, Order:=xlAscending, DataOption:=xlSortNormal
     EventsSheet.Sort.SortFields.Add Key:=Columns(EventStartTimeColumn), SortOn:=xlSortOnValues, Order:=xlAscending, DataOption:=xlSortNormal
+    EventsSheet.Sort.SortFields.Add Key:=Columns(EventEndTimeColumn), SortOn:=xlSortOnValues, Order:=xlAscending, DataOption:=xlSortNormal
     With EventsSheet.Sort
         .SetRange Range(Cells(1, 1), Cells(getLastRow(ActiveSheet), 11))
         .Header = xlYes
