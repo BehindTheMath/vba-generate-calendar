@@ -169,8 +169,8 @@ Sub ParseRecurring()
                 ' Get the date of the original event
                 CurDate = Day(.Cells(CurOriginalRow, EventStartDateColumn))
                 ' What is the frequency that it recurs
-                Select Case .Cells(CurOriginalRow, RecurringColumn)
-                    Case "Daily"
+                Select Case LCase(.Cells(CurOriginalRow, RecurringColumn))
+                    Case "daily"
                         ' For each subsequent day
                         For DateCounter = CurDate To LastDay
                             ' Copy the data
@@ -180,7 +180,7 @@ Sub ParseRecurring()
                             .Cells(LastRow + (DateCounter - CurDate) + 1, EventEndDateColumn) = .Cells(CurOriginalRow, EventEndDateColumn) + (DateCounter - CurDate) + 1
                         Next DateCounter
                         LastRow = LastRow + DateCounter - CurDate - 1
-                    Case "Weekly"
+                    Case "weekly"
                         ' If there are more dates to recur on
                         If LastDay - CurDate >= 7 Then
                             ' For each week
