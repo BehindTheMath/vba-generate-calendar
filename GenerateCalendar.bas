@@ -46,7 +46,7 @@ Sub GenerateCalendar()
     TopRow = 3
     
     ' If there are recurring events
-    If EventsSheet.Cells(2, RecurringColumn).End(xlDown) <> "" Then
+    If EventsSheet.Cells(2, RecurringColumn).End(xlDown) <> vbNullString Then
         ParseRecurring
         Set Events = LoadEvents(Worksheets("Recurring"))
         Worksheets("Recurring").Cells.Clear
@@ -166,7 +166,7 @@ Sub ParseRecurring()
         ' For each row of the original data
         For CurOriginalRow = 1 To OriginalLastRow
             ' If this event is recurring
-            If .Cells(CurOriginalRow, RecurringColumn) <> "" Then
+            If .Cells(CurOriginalRow, RecurringColumn) <> vbNullString Then
                 ' Get the date of the original event
                 CurDate = Day(.Cells(CurOriginalRow, EventStartDateColumn))
                 ' What is the frequency that it recurs
@@ -212,7 +212,7 @@ Function LoadEvents(sheet As Worksheet) As Collection
     Set DaysEvents = New Collection
     LastDate = "0"
 
-    Do While sheet.Cells(RowCounter, EventStartDateColumn) <> ""
+    Do While sheet.Cells(RowCounter, EventStartDateColumn) <> vbNullString
         ' If the next event is from a different month, stop
         If Month(sheet.Cells(RowCounter, EventStartDateColumn)) <> CurMonth Then Exit Do
         
