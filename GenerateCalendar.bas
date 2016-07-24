@@ -10,7 +10,7 @@ Public MaxEvents As Integer, EventsSheet As Worksheet, CalendarSheet As Workshee
 
 ' Change these column numbers to reflect the Events data table
 Const EventNameColumn As Integer = 1, EventStartDateColumn As Integer = 3, EventStartTimeColumn As Integer = 5
-Const EventEndDateColumn As Integer = 7, EventEndTimeColumn As Integer = 9, EventDurationColumn As Integer = 11, RecurringColumn = 12
+Const EventEndDateColumn As Integer = 7, EventEndTimeColumn As Integer = 9, EventDurationColumn As Integer = 11, RecurringColumn As Integer = 12
 
 Sub GenerateCalendar()
     Dim FirstDayOfWeek As Integer, ThisMonth As Integer, ThisYear As Integer, DayOfWeekCounter As Integer, DateCounter As Integer, EventListRowCounter As Integer
@@ -121,7 +121,7 @@ Sub GenerateCalendar()
     Set Events = Nothing: Set EventsSheet = Nothing: Set CalendarSheet = Nothing: Set DaysEvents = Nothing: Set RecurringSheet = Nothing
 End Sub
 
-Sub SetupHeaders(StartDay As Date)
+Sub SetupHeaders(ByVal StartDay As Date)
     Dim x As Integer
 
     ' Create the month and year title.
@@ -200,7 +200,7 @@ Sub ParseRecurring()
     End With
 End Sub
 
-Function LoadEvents(sheet As Worksheet) As Collection
+Function LoadEvents(ByRef sheet As Worksheet) As Collection
     Dim RowCounter As Integer, CurDate As Integer, CurMonth As Integer
     Dim EventData As String, LastDate As String, EventDuration As String
     Dim MonthsEvents As New Collection, DaysEvents As Collection
@@ -242,7 +242,7 @@ Function LoadEvents(sheet As Worksheet) As Collection
     Set MonthsEvents = Nothing: Set DaysEvents = Nothing
 End Function
 
-Sub SortEvents(sheet As Worksheet)
+Sub SortEvents(ByRef sheet As Worksheet)
     With sheet.Sort
         .SortFields.Clear
         .SortFields.Add Key:=sheet.Columns(EventStartDateColumn), SortOn:=xlSortOnValues, Order:=xlAscending, DataOption:=xlSortNormal
@@ -310,7 +310,7 @@ Sub SetupPage()
     ActiveWindow.View = xlNormalView
 End Sub
 
-Function GetLastRow(sheet As Worksheet) As Integer
+Function GetLastRow(ByRef sheet As Worksheet) As Integer
     ' Refresh UsedRange
     'sheet.UsedRange
     'GetLastRow = sheet.UsedRange.Rows(sheet.UsedRange.Rows.Count).Row
