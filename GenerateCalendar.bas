@@ -151,8 +151,7 @@ Sub SetupHeaders(ByVal StartDay As Date)
 End Sub
 
 Sub ParseRecurring()
-    Dim CurDate As Integer, LastRow As Integer, OriginalLastRow As Integer, CurOriginalRow As Integer
-    Dim DateCounter As Integer, CurColumn As Integer
+    Dim CurDate As Integer, LastRow As Integer, OriginalLastRow As Integer, CurOriginalRow As Integer, DateCounter As Integer
     
     LastRow = GetLastRow(EventsSheet)
     OriginalLastRow = LastRow
@@ -203,13 +202,12 @@ End Sub
 Function LoadEvents(ByRef sheet As Worksheet) As Collection
     Dim RowCounter As Integer, CurDate As Integer, CurMonth As Integer
     Dim EventData As String, LastDate As String, EventDuration As String
-    Dim MonthsEvents As New Collection, DaysEvents As Collection
+    Dim MonthsEvents As New Collection
 
     SortEvents sheet:=sheet
     RowCounter = 2
     CurDate = Day(sheet.Cells(RowCounter, EventStartDateColumn))
     CurMonth = Month(sheet.Cells(RowCounter, EventStartDateColumn))
-    Set DaysEvents = New Collection
     LastDate = "0"
 
     Do While sheet.Cells(RowCounter, EventStartDateColumn) <> vbNullString
@@ -239,7 +237,7 @@ Function LoadEvents(ByRef sheet As Worksheet) As Collection
     
     Set LoadEvents = MonthsEvents
     
-    Set MonthsEvents = Nothing: Set DaysEvents = Nothing
+    Set MonthsEvents = Nothing
 End Function
 
 Sub SortEvents(ByRef sheet As Worksheet)
