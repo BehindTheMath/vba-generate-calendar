@@ -97,7 +97,7 @@ Sub GenerateCalendar()
     
     ' Set row height
     For x = 1 To NumWeeks
-        Range(Cells(3 + x + MaxEvents * (x - 1), 1), Cells(3 + MaxEvents * x + (x - 1), 1)).RowHeight = 15
+        CalendarSheet.Range(CalendarSheet.Cells(3 + x + MaxEvents * (x - 1), 1), CalendarSheet.Cells(3 + MaxEvents * x + (x - 1), 1)).RowHeight = 15
     Next x
     
     DrawBorders
@@ -248,7 +248,7 @@ Sub SortEvents(sheet As Worksheet)
         .SortFields.Add Key:=sheet.Columns(EventStartDateColumn), SortOn:=xlSortOnValues, Order:=xlAscending, DataOption:=xlSortNormal
         .SortFields.Add Key:=sheet.Columns(EventStartTimeColumn), SortOn:=xlSortOnValues, Order:=xlAscending, DataOption:=xlSortNormal
         .SortFields.Add Key:=sheet.Columns(EventEndDateColumn), SortOn:=xlSortOnValues, Order:=xlAscending, DataOption:=xlSortNormal
-        .SetRange Range(sheet.Cells(1, 1), sheet.Cells(GetLastRow(sheet), RecurringColumn))
+        .SetRange sheet.Range(sheet.Cells(1, 1), sheet.Cells(GetLastRow(sheet), RecurringColumn))
         .Header = xlYes
         .MatchCase = False
         .Orientation = xlTopToBottom
@@ -304,7 +304,7 @@ Sub SetupPage()
         .PageSetup.PrintArea = .Range(.Cells(1, 1), .Cells(2 + NumWeeks * (MaxEvents + 1), 7)).Address
         ' Move page breaks if necessary
         If .VPageBreaks.Count Then .VPageBreaks(1).DragOff Direction:=xlToRight, RegionIndex:=1
-        If .HPageBreaks.Count Then Set .HPageBreaks(1).Location = Range("$A$53")
+        If .HPageBreaks.Count Then Set .HPageBreaks(1).Location = .Range("$A$53")
     End With
     ' Switch back to Normal View
     ActiveWindow.View = xlNormalView
