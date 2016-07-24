@@ -6,22 +6,24 @@ Attribute VB_Name = "GenerateCalendar"
 
 Option Explicit
 
-Public MaxEvents As Integer, EventsSheet As Worksheet, CalendarSheet As Worksheet, NumWeeks As Integer
+Public MaxEvents As Integer, EventsSheet As Worksheet, CalendarSheet As Worksheet, RecurringSheet As Worksheet, NumWeeks As Integer, LastDay As Integer
 
 ' Change these column numbers to reflect the Events data table
-Const EventNameColumn As Integer = 1, EventDateColumn As Integer = 3, EventStartTimeColumn As Integer = 5, EventEndTimeColumn As Integer = 9, EventDurationColumn As Integer = 11
+Const EventNameColumn As Integer = 1, EventStartDateColumn As Integer = 3, EventStartTimeColumn As Integer = 5
+Const EventEndDateColumn As Integer = 7, EventEndTimeColumn As Integer = 9, EventDurationColumn As Integer = 11, RecurringColumn = 12
 
 Sub GenerateCalendar()
     Dim FirstDayOfWeek As Integer, ThisMonth As Integer, ThisYear As Integer, DayOfWeekCounter As Integer, DateCounter As Integer, EventListRowCounter As Integer
-    Dim x As Integer, TopRow As Integer, LastDay As Integer
+    Dim x As Integer, TopRow As Integer
     Dim EventData As Variant
     Dim StartDay As Date
     Dim DaysEvents As Collection, Events As New Collection
     
     Set EventsSheet = Worksheets("Events")
     Set CalendarSheet = Worksheets("Calendar")
-    ThisYear = Year(EventsSheet.Cells(2, EventDateColumn))
-    ThisMonth = Month(EventsSheet.Cells(2, EventDateColumn))
+    Set RecurringSheet = Worksheets("Recurring")
+    ThisYear = Year(EventsSheet.Cells(2, EventStartDateColumn))
+    ThisMonth = Month(EventsSheet.Cells(2, EventStartDateColumn))
     StartDay = DateSerial(ThisYear, ThisMonth, 1)
     NumWeeks = 0
     
@@ -33,31 +35,9 @@ Sub GenerateCalendar()
     ' Clear any previous data.
     CalendarSheet.Cells.Clear
     
-    ' Create the month and year title.
-    With CalendarSheet.Range("A1:G1")
-        .Merge
-        .Value = Format(StartDay, "mmmm yyyy")
-        .HorizontalAlignment = xlCenterAcrossSelection
-        .VerticalAlignment = xlCenter
-        .Font.Size = 18
-        .Font.Bold = True
-        .RowHeight = 35
-        .NumberFormat = "mmmm yyyy"
-    End With
+    ' Setup the headers
+    SetupHeaders StartDay
     
-    ' Format A2:G2 for the days of week labels.
-    With CalendarSheet.Range("A2:G2")
-        .HorizontalAlignment = xlCenter
-        .Font.Size = 12
-        .Font.Bold = True
-        .RowHeight = 20
-        .ColumnWidth = 35
-    End With
-    ' Write days of week in A2:G2.
-    For x = 1 To 7
-        CalendarSheet.Cells(2, x) = WeekdayName(x)
-    Next x
-
     ' Get on which day of the week the month starts.
     FirstDayOfWeek = Weekday(StartDay)
     ' Get the last date of the month
@@ -65,7 +45,14 @@ Sub GenerateCalendar()
     DateCounter = 1
     TopRow = 3
     
-    Set Events = LoadEvents
+    ' If there are recurring events
+    If EventsSheet.Cells(2, RecurringColumn).End(xlDown) <> "" Then
+        ParseRecurring
+        Set Events = LoadEvents(Worksheets("Recurring"))
+        Worksheets("Recurring").Cells.Clear
+    Else
+        Set Events = LoadEvents(EventsSheet)
+    End If
     
     Do
         For DayOfWeekCounter = FirstDayOfWeek To 7
@@ -131,32 +118,32 @@ Sub GenerateCalendar()
     ' Allow screen to redraw with calendar showing.
     Application.ScreenUpdating = True
     
-    Set Events = Nothing: Set EventsSheet = Nothing: Set CalendarSheet = Nothing: Set DaysEvents = Nothing
+    Set Events = Nothing: Set EventsSheet = Nothing: Set CalendarSheet = Nothing: Set DaysEvents = Nothing: Set RecurringSheet = Nothing
 End Sub
 
-Function LoadEvents() As Collection
+Function LoadEvents(sheet As Worksheet) As Collection
     Dim RowCounter As Integer, CurDate As Integer, CurMonth As Integer
     Dim EventData As String, LastDate As String, EventDuration As String
     Dim MonthsEvents As New Collection, DaysEvents As Collection
 
-    SortEvents
+    SortEvents sheet:=sheet
     RowCounter = 2
-    CurDate = Day(EventsSheet.Cells(RowCounter, EventDateColumn))
-    CurMonth = Month(EventsSheet.Cells(RowCounter, EventDateColumn))
+    CurDate = Day(sheet.Cells(RowCounter, EventStartDateColumn))
+    CurMonth = Month(sheet.Cells(RowCounter, EventStartDateColumn))
     Set DaysEvents = New Collection
     LastDate = "0"
 
-    Do While EventsSheet.Cells(RowCounter, EventDateColumn) <> ""
+    Do While sheet.Cells(RowCounter, EventStartDateColumn) <> ""
         ' If the next event is from a different month, stop
-        If Month(EventsSheet.Cells(RowCounter, EventDateColumn)) <> CurMonth Then Exit Do
+        If Month(sheet.Cells(RowCounter, EventStartDateColumn)) <> CurMonth Then Exit Do
         
         ' Get the next event
-        EventDuration = Format(EventsSheet.Cells(RowCounter, EventDurationColumn), "h:mm")
+        EventDuration = Format(sheet.Cells(RowCounter, EventDurationColumn), "h:mm")
         ' Formula for calculating duration:
-        'EventDuration = Int(DateDiff("n", EventsSheet.Cells(RowCounter, EventStartTimeColumn), EventsSheet.Cells(RowCounter, EventEndTimeColumn)) / 60)
-        'EventDuration = Event Duration & ":" & DateDiff("n", EventsSheet.Cells(RowCounter, EventStartTimeColumn), EventsSheet.Cells(RowCounter, EventEndTimeColumn)) Mod 60
-        EventData = EventsSheet.Cells(RowCounter, EventNameColumn) & ": " & Format(EventsSheet.Cells(RowCounter, EventStartTimeColumn), "h:mm AMPM") & " - "
-        EventData = EventData & Format(EventsSheet.Cells(RowCounter, EventEndTimeColumn), "h:mm AMPM") & " (" & EventDuration & ")"
+        'EventDuration = Int(DateDiff("n", Sheet.Cells(RowCounter, EventStartTimeColumn), Sheet.Cells(RowCounter, EventEndTimeColumn)) / 60)
+        'EventDuration = Event Duration & ":" & DateDiff("n", Sheet.Cells(RowCounter, EventStartTimeColumn), Sheet.Cells(RowCounter, EventEndTimeColumn)) Mod 60
+        EventData = sheet.Cells(RowCounter, EventNameColumn) & ": " & Format(sheet.Cells(RowCounter, EventStartTimeColumn), "h:mm AMPM") & " - "
+        EventData = EventData & Format(sheet.Cells(RowCounter, EventEndTimeColumn), "h:mm AMPM") & " (" & EventDuration & ")"
 
         If LastDate <> Str(CurDate) Then
             LastDate = Str(CurDate)
@@ -168,7 +155,7 @@ Function LoadEvents() As Collection
 
         ' Advance to the next row
         RowCounter = RowCounter + 1
-        CurDate = Day(EventsSheet.Cells(RowCounter, EventDateColumn))
+        CurDate = Day(sheet.Cells(RowCounter, EventStartDateColumn))
     Loop
     
     Set LoadEvents = MonthsEvents
@@ -176,13 +163,13 @@ Function LoadEvents() As Collection
     Set MonthsEvents = Nothing: Set DaysEvents = Nothing
 End Function
 
-Sub SortEvents()
-    EventsSheet.Sort.SortFields.Clear
-    EventsSheet.Sort.SortFields.Add Key:=Columns(EventDateColumn), SortOn:=xlSortOnValues, Order:=xlAscending, DataOption:=xlSortNormal
-    EventsSheet.Sort.SortFields.Add Key:=Columns(EventStartTimeColumn), SortOn:=xlSortOnValues, Order:=xlAscending, DataOption:=xlSortNormal
-    EventsSheet.Sort.SortFields.Add Key:=Columns(EventEndTimeColumn), SortOn:=xlSortOnValues, Order:=xlAscending, DataOption:=xlSortNormal
-    With EventsSheet.Sort
-        .SetRange Range(Cells(1, 1), Cells(getLastRow(ActiveSheet), 11))
+Sub SortEvents(sheet As Worksheet)
+    With sheet.Sort
+        .SortFields.Clear
+        .SortFields.Add Key:=sheet.Columns(EventStartDateColumn), SortOn:=xlSortOnValues, Order:=xlAscending, DataOption:=xlSortNormal
+        .SortFields.Add Key:=sheet.Columns(EventStartTimeColumn), SortOn:=xlSortOnValues, Order:=xlAscending, DataOption:=xlSortNormal
+        .SortFields.Add Key:=sheet.Columns(EventEndDateColumn), SortOn:=xlSortOnValues, Order:=xlAscending, DataOption:=xlSortNormal
+        .SetRange Range(sheet.Cells(1, 1), sheet.Cells(GetLastRow(sheet), RecurringColumn))
         .Header = xlYes
         .MatchCase = False
         .Orientation = xlTopToBottom
@@ -191,10 +178,11 @@ Sub SortEvents()
     End With
 End Sub
 
-Function getLastRow(sheet As Worksheet) As Integer
+Function GetLastRow(sheet As Worksheet) As Integer
     ' Refresh UsedRange
     'sheet.UsedRange
-    getLastRow = sheet.UsedRange.Rows(sheet.UsedRange.Rows.Count).Row
+    'GetLastRow = sheet.UsedRange.Rows(sheet.UsedRange.Rows.Count).Row
+    GetLastRow = sheet.Cells(1, EventNameColumn).CurrentRegion.Rows.Count
 End Function
 
 Sub DrawBorders()
@@ -233,6 +221,7 @@ End Sub
 
 Sub SetupPage()
     Worksheets("Calendar").Select
+    ' Switch to Page Break Preview mode
     ActiveWindow.View = xlPageBreakPreview
     With CalendarSheet
         ' Remove old page breaks
@@ -245,5 +234,85 @@ Sub SetupPage()
         If .VPageBreaks.Count Then .VPageBreaks(1).DragOff Direction:=xlToRight, RegionIndex:=1
         If .HPageBreaks.Count Then Set .HPageBreaks(1).Location = Range("$A$53")
     End With
+    ' Switch back to Normal View
     ActiveWindow.View = xlNormalView
+End Sub
+
+Sub ParseRecurring()
+    Dim CurDate As Integer, LastRow As Integer, OriginalLastRow As Integer, CurOriginalRow As Integer
+    Dim DateCounter As Integer, CurColumn As Integer
+    
+    LastRow = GetLastRow(EventsSheet)
+    OriginalLastRow = LastRow
+
+    With RecurringSheet
+        ' Clear any old data from the Recurring sheet
+        .Cells.Clear
+        ' Copy the data from the Events sheet to the Recurring sheet so we can manipulate it without affecting the original data
+        EventsSheet.Range("A1", .Cells(OriginalLastRow, RecurringColumn).Address).Copy .Range("A1")
+        
+        ' For each row of the original data
+        For CurOriginalRow = 1 To OriginalLastRow
+            ' If this event is recurring
+            If .Cells(CurOriginalRow, RecurringColumn) <> "" Then
+                ' Get the date of the original event
+                CurDate = Day(.Cells(CurOriginalRow, EventStartDateColumn))
+                ' What is the frequency that it recurs
+                Select Case .Cells(CurOriginalRow, RecurringColumn)
+                    Case "Daily"
+                        ' For each subsequent day
+                        For DateCounter = CurDate To LastDay
+                            ' Copy the data
+                            .Range(.Cells(CurOriginalRow, 1), .Cells(CurOriginalRow, RecurringColumn - 1)).Copy .Cells(LastRow + DateCounter - CurDate + 1, 1)
+                            'Update the day to the new day
+                            .Cells(LastRow + (DateCounter - CurDate) + 1, EventStartDateColumn) = .Cells(CurOriginalRow, EventStartDateColumn) + (DateCounter - CurDate) + 1
+                            .Cells(LastRow + (DateCounter - CurDate) + 1, EventEndDateColumn) = .Cells(CurOriginalRow, EventEndDateColumn) + (DateCounter - CurDate) + 1
+                        Next DateCounter
+                        LastRow = LastRow + DateCounter - CurDate - 1
+                    Case "Weekly"
+                        ' If there are more dates to recur on
+                        If LastDay - CurDate >= 7 Then
+                            ' For each week
+                            For DateCounter = 7 To LastDay - CurDate Step 7
+                                ' Copy the data
+                                .Range(.Cells(CurOriginalRow, 1), .Cells(CurOriginalRow, RecurringColumn - 1)).Copy .Cells(LastRow + (DateCounter / 7), 1)
+                                'Update the day to the new day
+                                .Cells(LastRow + (DateCounter / 7), EventStartDateColumn) = .Cells(CurOriginalRow, EventStartDateColumn) + DateCounter
+                                .Cells(LastRow + (DateCounter / 7), EventEndDateColumn) = .Cells(CurOriginalRow, EventEndDateColumn) + DateCounter
+                            Next DateCounter
+                            LastRow = LastRow + ((DateCounter - 7) / 7)
+                        End If
+                End Select
+            End If
+        Next CurOriginalRow
+    End With
+End Sub
+
+Sub SetupHeaders(StartDay As Date)
+    Dim x As Integer
+
+    ' Create the month and year title.
+    With CalendarSheet.Range("A1:G1")
+        .Merge
+        .Value = Format(StartDay, "mmmm yyyy")
+        .HorizontalAlignment = xlCenterAcrossSelection
+        .VerticalAlignment = xlCenter
+        .Font.Size = 18
+        .Font.Bold = True
+        .RowHeight = 35
+        .NumberFormat = "mmmm yyyy"
+    End With
+    
+    ' Format A2:G2 for the days of week labels.
+    With CalendarSheet.Range("A2:G2")
+        .HorizontalAlignment = xlCenter
+        .Font.Size = 12
+        .Font.Bold = True
+        .RowHeight = 20
+        .ColumnWidth = 35
+    End With
+    ' Write days of week in A2:G2.
+    For x = 1 To 7
+        CalendarSheet.Cells(2, x) = WeekdayName(x)
+    Next x
 End Sub
