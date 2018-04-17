@@ -1,9 +1,9 @@
 # VBA-Generate-Calendar
 VBA macro to generate a calendar in Excel from a list of events.
 
-![Calendar sheet - Page Layout view](screenshots/vba-generate-calendar Calendar sheet - Page Layout.jpg)
+![Calendar sheet - Page Layout view](screenshots/vba-generate-calendar_Calendar_sheet_Page_Layout.jpg)
 
-##Usage
+## Usage
 
 1. Import GenerateCalendar.bas into a new Excel VBA module.  
 2. Create 2 worksheets: Events and Calendar.  
@@ -13,7 +13,7 @@ At minimum, you should have the following columns: Event Name, Event Date, Event
 5. Edit the `Const`s in the code as necessary to match the appropriate columns.  
 6. Run the Generate Calendar macro.
 
-#####Recurring Events
+##### Recurring Events
 
 To use recurring events, follow the following steps before running the macro (step 6 above):
 1. Add a column to the Events sheet, immediately to the right of the data.
@@ -21,7 +21,7 @@ To use recurring events, follow the following steps before running the macro (st
 3. Edit the `RecurringColumn` `Const` to reflect the column number.
 4. Add a new blank sheet called `Recurring`.
 
-##License
+## License
 
 
 MIT License
